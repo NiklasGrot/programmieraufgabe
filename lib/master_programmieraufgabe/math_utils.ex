@@ -1,5 +1,7 @@
 defmodule MasterProgrammieraufgabe.MathUtils do
+  alias MasterProgrammieraufgabe.MathUtils
   use Tensor
+
   def find_diameter(pointset) do
     stream =
       Stream.transform(pointset, pointset, fn _, [cur | rest] ->
@@ -11,13 +13,12 @@ defmodule MasterProgrammieraufgabe.MathUtils do
       if distances != [] do
         {_,idx} = Enum.with_index(distances) |> Enum.max_by(fn ({dist, _idx}) -> dist end)
         {{x1,y1},{x2,y2}}= Enum.at(all_combinations,idx)
-        [x1, y1, x2, y2]
+        %{x1: x1, y1: y1, x2: x2, y2: y2}
       else
         nil
       end
       diameter_pair
   end
-
 
  def rotate_vector(degree, {v1,v2}=dir_vec) do
   rad = degree * :math.pi() / 180
@@ -26,14 +27,27 @@ defmodule MasterProgrammieraufgabe.MathUtils do
   a3 = :math.sin(rad)
   a4 = :math.cos(rad)
   rot_mat = Matrix.new([[a1,a2],[a3,a4]],2,2)
-
   rv1 = v1 * rot_mat[0][0] + v2 * rot_mat[0][1]
   rv2 = v1 * rot_mat[1][0] + v2 * rot_mat[1][1]
   {rv1,rv2}
  end
 
-  @spec get_helper_lines(any(), any()) :: none()
-  def get_helper_lines([x1,x2,y1,y2],hull_points) do
+ def get_rotated_lines({dv1,dv2}=_dir_vec, hull_points,angle) do
+    {rv1,rv2} = rotate_vector(angle,{dv1,dv2})
+    m = rv2 / rv1
+    #get correct hull points line left
+    [{p1,p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,true)end)
+    #get correct hull points line right
+    [{p3,p4} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,false)end)
+
+    c1 = -m * p1 + p2
+    c2 = -m * p3 + p4
+    line1_coords = get_crosspoints_with_canvas(m,c1)
+    line2_coords = get_crosspoints_with_canvas(m,c2)
+    [line1_coords,line2_coords]
+ end
+
+  def get_helper_lines(%{x1: x1,y1: x2,x2: y1,y2: y2},hull_points) do
   # !!!! handelt noch nicht parralellität zu achsen (m = unendlich)!!!!!
     point1 = {x1,x2}
     point2 = {y1,y2}
@@ -41,43 +55,17 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     m = ov2 / ov1 #  !! ov1 = 0
 
     c1 = -m * x1 + x2
-    line1 = get_crosspoints_with_canvas(m,c1)
     c2 = -m * y1 + y2
+    line1 = get_crosspoints_with_canvas(m,c1)
     line2 = get_crosspoints_with_canvas(m,c2)
 
+    [line3,line4] = get_rotated_lines({ov1,ov2},hull_points,60)
+    [line5,line6] =get_rotated_lines({ov1,ov2},hull_points,120)
 
-    #60° gedrehte Hilfslinien
-    {rv1,rv2} = rotate_vector(60,{ov1,ov2})
-
-    m_r = rv2 / rv1
-    #check for line left
-    [{r_p1,r_p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,true)end)
-    #check for line right
-    [{r2_p1,r2_p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,false)end)
-
-    c1_r = -m_r * r_p1 + r_p2
-    line3_rotated = get_crosspoints_with_canvas(m_r,c1_r)
-    c2_r = -m_r * r2_p1 + r2_p2
-    line4_rotated = get_crosspoints_with_canvas(m_r,c2_r)
-
-    #60° gedrehte Hilfslinien 2
-    {rv1,rv2} = rotate_vector(60,{rv1,rv2})
-
-    m_r = rv2 / rv1
-    #check for line left
-    [{r_p1,r_p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,true)end)
-    #check for line right
-    [{r2_p1,r2_p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,false)end)
-
-    c1_r = -m_r * r_p1 + r_p2
-    line5_rotated = get_crosspoints_with_canvas(m_r,c1_r)
-    c2_r = -m_r * r2_p1 + r2_p2
-    line6_rotated = get_crosspoints_with_canvas(m_r,c2_r)
-
-    {line1,line2,line3_rotated,line4_rotated,line5_rotated,line6_rotated}
+    [line1,line2,line3,line4,line5,line6]
   end
 
-  defp check_line_out_of_hull({f1,f2} = point,{rv1,rv2}=dir_vec,hull_points,left) do
+  defp check_line_out_of_hull({f1,f2} = point,{rv1,rv2}=_dir_vec,hull_points,left) do
     {d1,d2} = {f1+rv1,f2+rv2}
     res = Enum.reduce(hull_points,true,fn {p1,p2},acc -> is_left?({f1,f2},{d1,d2},{p1,p2}) == left and acc == true or (point == {p1,p2} and acc == true)end)
     res
@@ -100,7 +88,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     {cp1_x,cp1_y} = format_crosspoint(cp1)
     {cp2_x,cp2_y} = format_crosspoint(cp2)
 
-    [cp1_x,cp1_y,cp2_x,cp2_y]
+    %{x1: cp1_x,y1: cp1_y,x2: cp2_x,y2: cp2_y}
 
   end
 

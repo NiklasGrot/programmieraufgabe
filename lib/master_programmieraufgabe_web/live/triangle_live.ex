@@ -21,25 +21,10 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
           <circle cx={x} cy={y} r={r} fill={color} />
         <% end %>
         <%= if @diameter_coords != nil do%>
-          <line x1={"#{Enum.at(@diameter_coords,0)}"} y1={"#{Enum.at(@diameter_coords,1)}"} x2={"#{Enum.at(@diameter_coords,2)}"} y2={"#{Enum.at(@diameter_coords,3)}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
+          <line x1={"#{@diameter_coords.x1}"} y1={"#{@diameter_coords.y1}"} x2={"#{@diameter_coords.x2}"} y2={"#{@diameter_coords.y2}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
         <% end %>
-        <%= if @helper_line1 != [] do%>
-          <line x1={"#{Enum.at(@helper_line1,0)}"} y1={"#{Enum.at(@helper_line1,1)}"} x2={"#{Enum.at(@helper_line1,2)}"} y2={"#{Enum.at(@helper_line1,3)}"} stroke="black" stroke-width="0.25"/>
-        <% end %>
-        <%= if @helper_line2 != [] do%>
-          <line x1={"#{Enum.at(@helper_line2,0)}"} y1={"#{Enum.at(@helper_line2,1)}"} x2={"#{Enum.at(@helper_line2,2)}"} y2={"#{Enum.at(@helper_line2,3)}"} stroke="black" stroke-width="0.25"/>
-        <% end %>
-        <%= if @helper_line3 != [] do%>
-          <line x1={"#{Enum.at(@helper_line3,0)}"} y1={"#{Enum.at(@helper_line3,1)}"} x2={"#{Enum.at(@helper_line3,2)}"} y2={"#{Enum.at(@helper_line3,3)}"} stroke="blue" stroke-width="0.25"/>
-        <% end %>
-        <%= if @helper_line4 != [] do%>
-          <line x1={"#{Enum.at(@helper_line4,0)}"} y1={"#{Enum.at(@helper_line4,1)}"} x2={"#{Enum.at(@helper_line4,2)}"} y2={"#{Enum.at(@helper_line4,3)}"} stroke="blue" stroke-width="0.25"/>
-        <% end %>
-        <%= if @helper_line5 != [] do%>
-          <line x1={"#{Enum.at(@helper_line5,0)}"} y1={"#{Enum.at(@helper_line5,1)}"} x2={"#{Enum.at(@helper_line5,2)}"} y2={"#{Enum.at(@helper_line5,3)}"} stroke="green" stroke-width="0.25"/>
-        <% end %>
-        <%= if @helper_line6 != [] do%>
-          <line x1={"#{Enum.at(@helper_line6,0)}"} y1={"#{Enum.at(@helper_line6,1)}"} x2={"#{Enum.at(@helper_line6,2)}"} y2={"#{Enum.at(@helper_line6,3)}"} stroke="green" stroke-width="0.25"/>
+         <%= if @helper_lines != nil do%>
+              <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke="black" stroke-width="0.25" />
         <% end %>
       </svg>
     </div>
@@ -54,12 +39,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     socket
     |> assign(:canvas, CircleDrawer.new_canvas())
     |> assign(:diameter_coords,nil)
-    |> assign(:helper_line1, [])
-    |> assign(:helper_line2, [])
-    |> assign(:helper_line3, [])
-    |> assign(:helper_line4, [])
-    |> assign(:helper_line5, [])
-    |> assign(:helper_line6, [])
+    |> assign(:helper_lines, nil)
     |> ok()
   end
 
@@ -74,35 +54,34 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     pointset = updated_canvas.circles |> extract_coordinates()
     updated_diameter_coords = MathUtils.find_diameter(pointset)
     updated_canvas = CircleDrawer.reset_circle(updated_canvas)
+    updated_canvas = CircleDrawer.reset_line(updated_canvas)
 
 
-    {hull_points, cross_points} =
+    {hull_points, helper_lines} =
       if length(pointset) >= 3 do
         hull_points = MathUtils.graham_scan(pointset)
-        cross_points = MathUtils.get_helper_lines(updated_diameter_coords, hull_points)
+        helper_lines = MathUtils.get_helper_lines(updated_diameter_coords, hull_points) |> Enum.map(fn %{x1: x1,y1: y1,x2: x2,y2: y2} -> CircleDrawer.new_line(x1,y1,x2,y2) end)
         hull_points =  Enum.map(hull_points, fn {x,y} -> CircleDrawer.new_circle(x,y,"red") end)
-        {hull_points, cross_points}
+        dbg({hull_points, helper_lines})
+        {hull_points, helper_lines}
       else
-        {[],{[],[],[],[],[],[]}}
+        {[],[]}
       end
 
-      {cross_points1, cross_points2, cross_points3,cross_points4, cross_points5, cross_points6} = cross_points
 
 
+    updated_canvas = Enum.reduce(helper_lines,updated_canvas,fn line, uc -> CircleDrawer.add_line(uc,line) end)
+    dbg(updated_canvas)
     updated_canvas = Enum.reduce(hull_points,updated_canvas,fn circle, uc -> CircleDrawer.update_circle(uc,circle) end)
+
 
     socket
     |> assign(:canvas, updated_canvas)
     |> assign(:diameter_coords, updated_diameter_coords)
-    |> assign(:helper_line1, cross_points1)
-    |> assign(:helper_line2, cross_points2)
-    |> assign(:helper_line3, cross_points3)
-    |> assign(:helper_line4, cross_points4)
-    |> assign(:helper_line5, cross_points5)
-    |> assign(:helper_line6, cross_points6)
+    |> assign(:helper_lines, helper_lines)
+
     |> noreply()
   end
-
 
   def extract_coordinates(circles) do
     Enum.map(circles, &{&1.x, &1.y})
