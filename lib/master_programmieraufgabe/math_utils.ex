@@ -10,9 +10,10 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     distances = Enum.map(all_combinations,fn {{x1,y1},{x2,y2}} -> calculate_distance({x1, y1}, {x2, y2}) end)
     diameter_pair =
       if distances != [] do
-        {_,idx} = Enum.with_index(distances) |> Enum.max_by(fn ({dist, _idx}) -> dist end)
+        {diameter,idx} = Enum.with_index(distances) |> Enum.max_by(fn ({dist, _idx}) -> dist end)
         {{x1,y1},{x2,y2}}= Enum.at(all_combinations,idx)
-        %{x1: x1, y1: y1, x2: x2, y2: y2}
+        diameter = diameter * :math.sqrt(3) |> Float.ceil(2)
+        %{x1: x1, y1: y1, x2: x2, y2: y2, diameter: diameter}
       else
         nil
       end
@@ -76,7 +77,10 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     #Crosspoints of line1 and line3
     x3 = (c3 - c1) / (m1 - m3)
     y3 = m1 * x3 + c1
-    %{x1: x1,y1: y1,x2: x2,y2: y2,x3: x3,y3: y3}
+
+    distance = calculate_distance({x1,y1},{x2,y2}) |> Float.ceil(2)
+
+    %{x1: x1,y1: y1,x2: x2,y2: y2,x3: x3,y3: y3, distance: distance}
   end
 
   defp check_line_out_of_hull({f1,f2} = point,{rv1,rv2}=_dir_vec,hull_points,left) do

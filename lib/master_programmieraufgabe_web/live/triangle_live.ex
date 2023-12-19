@@ -8,11 +8,15 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <h1 class="font-semibold">CircleDraw</h1>
+    <h1 class="font-semibold text-2xl w-full flex justify-center p-4">Programmieraufgabe</h1>
     <div class="mx-auto">
       <div>
-        <button phx-click="button-click"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
+        <button phx-click="button-click" ><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
       </div>
+      <div>
+        <p>Durchmesser d (mal Wurzel 3): <%= if @diameter_coords != nil, do: @diameter_coords.diameter %> <br> Seitenlänge: <%= if @triangle != [], do: @triangle.distance %> </p>
+      </div>
+      <div class="border-2 m-4 border-black">
       <svg
         id="circle-drawer"
         phx-hook="CircleDrawer"
@@ -30,16 +34,15 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
         <% end %>
         <%= if @triangle != [] do%>
               <polygon points={"#{@triangle.x1},#{@triangle.y1}
-                              #{@triangle.x2},#{@triangle.y2}
-                              #{@triangle.x3},#{@triangle.y3}"} fill="#0002" stroke="black" stroke-width="0.25" />
+                                #{@triangle.x2},#{@triangle.y2}
+                                #{@triangle.x3},#{@triangle.y3}"}
+                                fill="#0002" stroke="black" stroke-width="0.25" />
         <% end %>
       </svg>
+      </div>
     </div>
     """
   end
-
-  defp prettify_coordinates(float) when is_float(float), do: Float.floor(float)
-  defp prettify_coordinates(int) when is_integer(int), do: int
 
   @impl true
   def mount(_, _, socket) do
