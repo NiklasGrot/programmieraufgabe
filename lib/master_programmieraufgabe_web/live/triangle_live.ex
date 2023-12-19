@@ -8,7 +8,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <h1 class="font-semibold text-2xl w-full flex justify-center p-4">Programmieraufgabe</h1>
+    <h1 class="font-semibold font-geist text-2xl w-full flex justify-center p-4">Programmieraufgabe</h1>
     <div class="mx-auto">
       <div>
         <button phx-click="button-click" ><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>

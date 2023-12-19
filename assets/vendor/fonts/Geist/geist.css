@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'geist';
+    font-style: normal;
+    font-weight: 400;
+    src: local(''),
+         url('Geist-Regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+         
+  }
