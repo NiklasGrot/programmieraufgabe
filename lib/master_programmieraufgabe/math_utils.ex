@@ -1,5 +1,4 @@
 defmodule MasterProgrammieraufgabe.MathUtils do
-  alias MasterProgrammieraufgabe.MathUtils
   use Tensor
 
   def find_diameter(pointset) do
@@ -20,7 +19,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
       diameter_pair
   end
 
- def rotate_vector(degree, {v1,v2}=dir_vec) do
+ defp rotate_vector(degree, {v1,v2}=_dir_vec) do
   rad = degree * :math.pi() / 180
   a1 = :math.cos(rad)
   a2 = -:math.sin(rad)
@@ -32,7 +31,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
   {rv1,rv2}
  end
 
- def get_rotated_lines({dv1,dv2}=_dir_vec, hull_points,angle) do
+ defp get_rotated_lines({dv1,dv2}=_dir_vec, hull_points,angle) do
     {rv1,rv2} = rotate_vector(angle,{dv1,dv2})
     m = rv2 / rv1
     #get correct hull points line left
@@ -42,9 +41,11 @@ defmodule MasterProgrammieraufgabe.MathUtils do
 
     c1 = -m * p1 + p2
     c2 = -m * p3 + p4
-    line1_coords = get_crosspoints_with_canvas(m,c1)
-    line2_coords = get_crosspoints_with_canvas(m,c2)
-    [line1_coords,line2_coords]
+    %{x1: x1, y1: y1, x2: x2, y2: y2} = get_crosspoints_with_canvas(m,c1)
+    %{x1: x3, y1: y3, x2: x4, y2: y4} = get_crosspoints_with_canvas(m,c2)
+    line_1 = %{x1: x1,y1: y1,x2: x2,y2: y2,m: m,c: c1}
+    line_2 = %{x1: x3,y1: y3,x2: x4,y2: y4,m: m,c: c2}
+    [line_1,line_2]
  end
 
   def get_helper_lines(%{x1: x1,y1: x2,x2: y1,y2: y2},hull_points) do
@@ -52,17 +53,30 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     point1 = {x1,x2}
     point2 = {y1,y2}
     {ov1, ov2} = calc_orthogonal_vec(point1,point2)
-    m = ov2 / ov1 #  !! ov1 = 0
 
-    c1 = -m * x1 + x2
-    c2 = -m * y1 + y2
-    line1 = get_crosspoints_with_canvas(m,c1)
-    line2 = get_crosspoints_with_canvas(m,c2)
-
+    [line1,line2] = get_rotated_lines({ov1,ov2},hull_points,0)
     [line3,line4] = get_rotated_lines({ov1,ov2},hull_points,60)
-    [line5,line6] =get_rotated_lines({ov1,ov2},hull_points,120)
+    [line5,line6] = get_rotated_lines({ov1,ov2},hull_points,120)
+    triangle_coords = get_triangle([line1,line4,line5])
 
-    [line1,line2,line3,line4,line5,line6]
+    [[line1,line2,line3,line4,line5,line6],triangle_coords]
+  end
+
+  def get_triangle([line1,line2,line3] = lines) do
+    %{m: m1,c: c1} = line1
+    %{m: m2,c: c2} = line2
+    %{m: m3,c: c3} = line3
+
+    #Crosspoints of line1 and line2
+    x1 = (c2 - c1) / (m1 - m2)
+    y1 = m1 * x1 + c1
+    #Crosspoints of line2 and line3
+    x2 = (c3 - c2) / (m2 - m3)
+    y2 = m2 * x2 + c2
+    #Crosspoints of line1 and line3
+    x3 = (c3 - c1) / (m1 - m3)
+    y3 = m1 * x3 + c1
+    %{x1: x1,y1: y1,x2: x2,y2: y2,x3: x3,y3: y3}
   end
 
   defp check_line_out_of_hull({f1,f2} = point,{rv1,rv2}=_dir_vec,hull_points,left) do
@@ -89,10 +103,9 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     {cp2_x,cp2_y} = format_crosspoint(cp2)
 
     %{x1: cp1_x,y1: cp1_y,x2: cp2_x,y2: cp2_y}
-
   end
 
-  defp format_crosspoint({val, idx} = cp) do
+  defp format_crosspoint({val, idx} = _cp) do
     point =
       cond  do
         idx === 0 ->
@@ -107,7 +120,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     point
   end
 
-  defp calc_orthogonal_vec({a1,a2}=point1,{b1,b2}=point2) do
+  defp calc_orthogonal_vec({a1,a2}=_point1,{b1,b2}=_point2) do
     x1 = b1 - a1
     x2 = b2 - a2
     {-x2,x1}
@@ -144,12 +157,12 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     :math.acos(dp / (m1 * m2))
   end
 
-  defp magnitude({x1,y1}=vector1) do
+  defp magnitude({x1,y1}=_vector1) do
    m = :math.sqrt(x1 * x1 + y1 * y1)
    m
   end
 
-  defp dot_product({x1,y1}=vector1, {x2,y2}=vector2) do
+  defp dot_product({x1,y1}=_vector1, {x2,y2}=_vector2) do
     dp = x1 * x2 + y1 * y2
     dp
   end
@@ -174,7 +187,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     val > 0
   end
 
-  def calculate_distance({x1, y1}, {x2, y2}) do
+  defp calculate_distance({x1, y1}, {x2, y2}) do
     distance = :math.sqrt(:math.pow(x2 - x1, 2) + :math.pow(y2 - y1, 2))
     distance
   end

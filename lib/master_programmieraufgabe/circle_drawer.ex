@@ -9,19 +9,19 @@ defmodule MasterProgrammieraufgabe.CircleDrawer do
 
   defmodule StraightLine do
     @enforce_keys [:x1, :y1, :x2, :y2]
-    defstruct x1: nil, y1: nil, x2: nil, y2: nil
+    defstruct x1: nil, y1: nil, x2: nil, y2: nil, color: nil
     @type t :: %__MODULE__{}
   end
 
   defmodule Canvas do
-    defstruct circles: [], lines: [], selected: nil
+    defstruct circles: [], lines: []
   end
 
   def new_canvas, do: %Canvas{}
 
   def new_circle(x, y, color \\ "black"), do: %Circle{x: x, y: y, color: color}
 
-  def new_line(x1, y1, x2, y2), do: %StraightLine{x1: x1, y1: y1, x2: x2, y2: y2}
+  def new_line(x1, y1, x2, y2, color \\ "black"), do: %StraightLine{x1: x1, y1: y1, x2: x2, y2: y2, color: color}
 
   def update_circle(canvas, %{x: x, y: y} = circle) do
     index =

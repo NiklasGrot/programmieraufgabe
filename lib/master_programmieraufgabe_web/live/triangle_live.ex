@@ -1,7 +1,6 @@
 defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   # In Phoenix v1.6+ apps, the line is typically: use MyAppWeb, :live_view
   use Phoenix.LiveView
-  alias MasterProgrammieraufgabe.CircleDrawer.Circle
   alias MasterProgrammieraufgabe.CircleDrawer
   alias Phoenix.LiveView.JS
   alias MasterProgrammieraufgabe.MathUtils
@@ -24,7 +23,12 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
           <line x1={"#{@diameter_coords.x1}"} y1={"#{@diameter_coords.y1}"} x2={"#{@diameter_coords.x2}"} y2={"#{@diameter_coords.y2}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
         <% end %>
          <%= if @helper_lines != nil do%>
-              <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke="black" stroke-width="0.25" />
+              <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2,color: color} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} stroke-width="0.25" />
+        <% end %>
+        <%= if @triangle != [] do%>
+              <polygon points={"#{@triangle.x1},#{@triangle.y1}
+                              #{@triangle.x2},#{@triangle.y2}
+                              #{@triangle.x3},#{@triangle.y3}"} fill="#0002" stroke="black" stroke-width="0.25" />
         <% end %>
       </svg>
     </div>
@@ -40,6 +44,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> assign(:canvas, CircleDrawer.new_canvas())
     |> assign(:diameter_coords,nil)
     |> assign(:helper_lines, nil)
+    |> assign(:triangle, [])
     |> ok()
   end
 
@@ -51,35 +56,32 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
 
     circle = CircleDrawer.new_circle(x, y)
     updated_canvas = CircleDrawer.add_circle(canvas, circle)
+
     pointset = updated_canvas.circles |> extract_coordinates()
     updated_diameter_coords = MathUtils.find_diameter(pointset)
-    updated_canvas = CircleDrawer.reset_circle(updated_canvas)
-    updated_canvas = CircleDrawer.reset_line(updated_canvas)
+    updated_canvas = CircleDrawer.reset_circle(updated_canvas) |> CircleDrawer.reset_line()
 
 
-    {hull_points, helper_lines} =
+    {hull_points, helper_lines, triangle_coords} =
       if length(pointset) >= 3 do
         hull_points = MathUtils.graham_scan(pointset)
-        helper_lines = MathUtils.get_helper_lines(updated_diameter_coords, hull_points) |> Enum.map(fn %{x1: x1,y1: y1,x2: x2,y2: y2} -> CircleDrawer.new_line(x1,y1,x2,y2) end)
+        [helper_lines,triangle_coords] = MathUtils.get_helper_lines(updated_diameter_coords, hull_points)
+        colors = ["green","green","blue","blue","orange","orange"]
+        %{lines: helper_lines} = Enum.reduce(helper_lines, %{colors: colors,lines: []}, fn (%{x1: x1,y1: y1,x2: x2,y2: y2},%{colors: [color|colors],lines: lines}) -> %{lines: [CircleDrawer.new_line(x1,y1,x2,y2,color)|lines], colors: colors} end)
         hull_points =  Enum.map(hull_points, fn {x,y} -> CircleDrawer.new_circle(x,y,"red") end)
-        dbg({hull_points, helper_lines})
-        {hull_points, helper_lines}
+        {hull_points, helper_lines,triangle_coords}
       else
-        {[],[]}
+        {[],[],[]}
       end
 
-
-
     updated_canvas = Enum.reduce(helper_lines,updated_canvas,fn line, uc -> CircleDrawer.add_line(uc,line) end)
-    dbg(updated_canvas)
     updated_canvas = Enum.reduce(hull_points,updated_canvas,fn circle, uc -> CircleDrawer.update_circle(uc,circle) end)
-
 
     socket
     |> assign(:canvas, updated_canvas)
     |> assign(:diameter_coords, updated_diameter_coords)
     |> assign(:helper_lines, helper_lines)
-
+    |> assign(:triangle, triangle_coords)
     |> noreply()
   end
 
