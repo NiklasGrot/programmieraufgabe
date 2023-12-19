@@ -10,6 +10,9 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     ~H"""
     <h1 class="font-semibold">CircleDraw</h1>
     <div class="mx-auto">
+      <div>
+        <button phx-click="button-click"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
+      </div>
       <svg
         id="circle-drawer"
         phx-hook="CircleDrawer"
@@ -19,10 +22,10 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
         <%= for %{x: x, y: y, r: r, color: color} <- @canvas.circles do %>
           <circle cx={x} cy={y} r={r} fill={color} />
         <% end %>
-        <%= if @diameter_coords != nil do%>
+        <%= if @diameter_coords != nil and @helpers_hidden == false do%>
           <line x1={"#{@diameter_coords.x1}"} y1={"#{@diameter_coords.y1}"} x2={"#{@diameter_coords.x2}"} y2={"#{@diameter_coords.y2}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
         <% end %>
-         <%= if @helper_lines != nil do%>
+         <%= if @helper_lines != nil and @helpers_hidden == false do%>
               <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2,color: color} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} stroke-width="0.25" />
         <% end %>
         <%= if @triangle != [] do%>
@@ -45,8 +48,10 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> assign(:diameter_coords,nil)
     |> assign(:helper_lines, nil)
     |> assign(:triangle, [])
+    |> assign(:helpers_hidden, true)
     |> ok()
   end
+
 
   @impl true
   def handle_event("canvas-click", %{"x" => x, "y" => y}, socket) do
@@ -85,6 +90,17 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> noreply()
   end
 
+  def handle_event("button-click",_, socket) do
+    if socket.assigns.helpers_hidden == true do
+      socket
+      |> assign(:helpers_hidden, false)
+      |> noreply()
+    else
+      socket
+      |> assign(:helpers_hidden, true)
+      |> noreply()
+    end
+  end
   def extract_coordinates(circles) do
     Enum.map(circles, &{&1.x, &1.y})
   end
