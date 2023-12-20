@@ -7,8 +7,6 @@ config :master_programmieraufgabe, MasterProgrammieraufgabeWeb.Endpoint,
   secret_key_base: "HMhqZa+HP58chPqQHCz42TSXmle5wfW3yiCK2MiUlJ1psBBVI076rBSJpv/TlnZW",
   server: false
 
-# In test we don't send emails.
-config :master_programmieraufgabe, MasterProgrammieraufgabe.Mailer, adapter: Swoosh.Adapters.Test
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
