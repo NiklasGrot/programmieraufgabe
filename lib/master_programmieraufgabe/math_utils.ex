@@ -68,7 +68,7 @@ defmodule MasterProgrammieraufgabe.MathUtils do
     [[line1,line2,line3,line4,line5,line6],triangle_coords]
   end
 
-  def get_triangle([line1,line2,line3] = lines) do
+  def get_triangle([line1,line2,line3] = _lines) do
     %{m: m1,c: c1} = line1
     %{m: m2,c: c2} = line2
     %{m: m3,c: c3} = line3

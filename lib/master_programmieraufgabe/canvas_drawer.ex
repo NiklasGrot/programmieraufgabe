@@ -1,4 +1,4 @@
-defmodule MasterProgrammieraufgabe.CircleDrawer do
+defmodule MasterProgrammieraufgabe.CanvasDrawer do
   defmodule Circle do
     @beginning_radius 0.3
     @beginning_color "black"
