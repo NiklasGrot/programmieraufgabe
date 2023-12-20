@@ -8,18 +8,20 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="text-white  bg-main-dark m-4 rounded-xl shadow-sm shadow-black">
-      <h1 class="font-bold font-geist  text-2xl w-full flex justify-center pt-4">Programmieraufgabe</h1>
-      <div class="p-4">
-
-        <div class="mb-2">
+    <div class="text-white  bg-main-dark m-auto max-w-[80%] rounded-xl shadow-sm shadow-black overflow-hidden">
+      <div class="bg-main-darker py-6">
+        <h1 class="font-bold font-geist text-2xl w-full flex justify-center ">Programmieraufgabe Niklas Grotzeck</h1>
+        <p class=" text-main-accent w-full flex justify-center pt-2"> Masterbewerbung Digital Reality - Sommersemester 2024</p>
+      </div>
+      <div class="px-4 pb-4">
+        <div class="my-4">
           <p>Durchmesser d⋅√3: <%= if @diameter_coords != nil, do: @diameter_coords.diameter %> <br> Seitenlänge: <%= if @triangle != [], do: @triangle.distance %> </p>
         </div>
         <div class="border-2 border-black rounded-lg overflow-hidden relative">
           <svg
             id="circle-drawer"
             phx-hook="CircleDrawer"
-            viewBox="0 0 100 70"
+            viewBox="0 0 100 55"
             xmlns="http://www.w3.org/2000/svg"
             class="bg-white"
           >
@@ -39,8 +41,8 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
                                   fill="#0002" stroke="black" stroke-width="0.25" />
           <% end %>
         </svg>
-          <button phx-click="helper-button-click" class="shadow-sm shadow-black bg-main-dark rounded-full  w-40 px-4 py-2 absolute bottom-2 right-2 hover:bg-main-highlight"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
-          <button phx-click="reset-button-click" class="shadow-sm shadow-black bg-main-dark rounded-full   px-4 py-2 absolute bottom-2 left-2 hover:bg-main-highlight">
+          <button phx-click="helper-button-click" class="select-none shadow-sm shadow-black bg-main-dark rounded-full  w-40 px-4 py-2 absolute bottom-2 right-2 hover:bg-main-highlight"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
+          <button phx-click="reset-button-click" class="select-none shadow-sm shadow-black bg-main-dark rounded-full   px-4 py-2 absolute bottom-2 left-2 hover:bg-main-highlight">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" data-slot="icon" class="w-5 h-5">
                 <path fill-rule="evenodd" d="M7.793 2.232a.75.75 0 0 1-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 0 1 0 10.75H10.75a.75.75 0 0 1 0-1.5h2.875a3.875 3.875 0 0 0 0-7.75H3.622l4.146 3.957a.75.75 0 0 1-1.036 1.085l-5.5-5.25a.75.75 0 0 1 0-1.085l5.5-5.25a.75.75 0 0 1 1.06.025Z" clip-rule="evenodd" />
             </svg>
