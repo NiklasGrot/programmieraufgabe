@@ -16,7 +16,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        
+       'main-dark': 'rgb(34 39 52)',
+       'main-highlight': 'rgb(65,70,86)',
+       'main-accent': 'rgb(0,198,189)'
+  
       },
       fontFamily: {
         'sans': ['"Geist"', ...defaultTheme.fontFamily.sans],

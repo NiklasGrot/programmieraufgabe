@@ -8,37 +8,44 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <h1 class="font-semibold font-geist text-2xl w-full flex justify-center p-4">Programmieraufgabe</h1>
-    <div class="mx-auto">
-      <div>
-        <button phx-click="button-click" ><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
-      </div>
-      <div>
-        <p>Durchmesser d (mal Wurzel 3): <%= if @diameter_coords != nil, do: @diameter_coords.diameter %> <br> Seitenlänge: <%= if @triangle != [], do: @triangle.distance %> </p>
-      </div>
-      <div class="border-2 m-4 border-black">
-      <svg
-        id="circle-drawer"
-        phx-hook="CircleDrawer"
-        viewBox="0 0 100 100"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <%= for %{x: x, y: y, r: r, color: color} <- @canvas.circles do %>
-          <circle cx={x} cy={y} r={r} fill={color} />
-        <% end %>
-        <%= if @diameter_coords != nil and @helpers_hidden == false do%>
-          <line x1={"#{@diameter_coords.x1}"} y1={"#{@diameter_coords.y1}"} x2={"#{@diameter_coords.x2}"} y2={"#{@diameter_coords.y2}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
-        <% end %>
-         <%= if @helper_lines != nil and @helpers_hidden == false do%>
-              <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2,color: color} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} stroke-width="0.25" />
-        <% end %>
-        <%= if @triangle != [] do%>
-              <polygon points={"#{@triangle.x1},#{@triangle.y1}
-                                #{@triangle.x2},#{@triangle.y2}
-                                #{@triangle.x3},#{@triangle.y3}"}
-                                fill="#0002" stroke="black" stroke-width="0.25" />
-        <% end %>
-      </svg>
+    <div class="text-white  bg-main-dark m-4 rounded-xl shadow-sm shadow-black">
+      <h1 class="font-bold font-geist  text-2xl w-full flex justify-center pt-4">Programmieraufgabe</h1>
+      <div class="p-4">
+
+        <div class="mb-2">
+          <p>Durchmesser d⋅√3: <%= if @diameter_coords != nil, do: @diameter_coords.diameter %> <br> Seitenlänge: <%= if @triangle != [], do: @triangle.distance %> </p>
+        </div>
+        <div class="border-2 border-black rounded-lg overflow-hidden relative">
+          <svg
+            id="circle-drawer"
+            phx-hook="CircleDrawer"
+            viewBox="0 0 100 70"
+            xmlns="http://www.w3.org/2000/svg"
+            class="bg-white"
+          >
+          <%= for %{x: x, y: y, r: r, color: color} <- @canvas.circles do %>
+            <circle cx={x} cy={y} r={r} fill={color} />
+          <% end %>
+          <%= if @diameter_coords != nil and @helpers_hidden == false do%>
+            <line x1={"#{@diameter_coords.x1}"} y1={"#{@diameter_coords.y1}"} x2={"#{@diameter_coords.x2}"} y2={"#{@diameter_coords.y2}"} stroke="black" stroke-width="0.25" stroke-dasharray="1, 0.5"/>
+          <% end %>
+          <%= if @helper_lines != nil and @helpers_hidden == false do%>
+                <line :for={%{x1: x1, y1: y1, x2: x2, y2: y2,color: color} <- @canvas.lines} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} stroke-width="0.25" />
+          <% end %>
+          <%= if @triangle != [] do%>
+                <polygon points={"#{@triangle.x1},#{@triangle.y1}
+                                  #{@triangle.x2},#{@triangle.y2}
+                                  #{@triangle.x3},#{@triangle.y3}"}
+                                  fill="#0002" stroke="black" stroke-width="0.25" />
+          <% end %>
+        </svg>
+          <button phx-click="helper-button-click" class="shadow-sm shadow-black bg-main-dark rounded-full  w-40 px-4 py-2 absolute bottom-2 right-2 hover:bg-main-highlight"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
+          <button phx-click="reset-button-click" class="shadow-sm shadow-black bg-main-dark rounded-full   px-4 py-2 absolute bottom-2 left-2 hover:bg-main-highlight">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" data-slot="icon" class="w-5 h-5">
+                <path fill-rule="evenodd" d="M7.793 2.232a.75.75 0 0 1-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 0 1 0 10.75H10.75a.75.75 0 0 1 0-1.5h2.875a3.875 3.875 0 0 0 0-7.75H3.622l4.146 3.957a.75.75 0 0 1-1.036 1.085l-5.5-5.25a.75.75 0 0 1 0-1.085l5.5-5.25a.75.75 0 0 1 1.06.025Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
     """
@@ -93,7 +100,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> noreply()
   end
 
-  def handle_event("button-click",_, socket) do
+  def handle_event("helper-button-click",_, socket) do
     if socket.assigns.helpers_hidden == true do
       socket
       |> assign(:helpers_hidden, false)
@@ -104,6 +111,15 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
       |> noreply()
     end
   end
+
+  def handle_event("reset-button-click", _, socket) do
+    socket
+    |> assign(:canvas, CircleDrawer.new_canvas())
+    |> assign(:diameter_coords,nil)
+    |> assign(:triangle,[] )
+    |> noreply()
+  end
+
   def extract_coordinates(circles) do
     Enum.map(circles, &{&1.x, &1.y})
   end

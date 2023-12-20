@@ -34,12 +34,17 @@ defmodule MasterProgrammieraufgabe.MathUtils do
 
  defp get_rotated_lines({dv1,dv2}=_dir_vec, hull_points,angle) do
     {rv1,rv2} = rotate_vector(angle,{dv1,dv2})
-    m = rv2 / rv1
+
+
     #get correct hull points line left
     [{p1,p2} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,true)end)
     #get correct hull points line right
     [{p3,p4} | _] = Enum.filter(hull_points, fn point -> check_line_out_of_hull(point,{rv1,rv2},hull_points,false)end)
-
+    m = if rv1 != 0 do
+          rv2 / rv1
+        else
+          rv2 / 0.0000001
+        end
     c1 = -m * p1 + p2
     c2 = -m * p3 + p4
     %{x1: x1, y1: y1, x2: x2, y2: y2} = get_crosspoints_with_canvas(m,c1)
