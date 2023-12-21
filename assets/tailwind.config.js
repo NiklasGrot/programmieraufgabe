@@ -20,7 +20,7 @@ module.exports = {
        'main-dark': 'rgb(34 39 52)',
        'main-darker': ' rgb(27,31,41)',
        'main-highlight': 'rgb(65,70,86)',
-       'main-accent': 'rgb(0,198,189)',
+       'main-accent': '#1CD996',
        'body-bg': '#CACFE0'
   
       },
