@@ -1,4 +1,6 @@
 defmodule MasterProgrammieraufgabe.CanvasDrawer do
+  # Dieses Modul übernimmt alle Zeichenoperationen auf dem Canvas
+
   defmodule Circle do
     @beginning_radius 0.3
     @beginning_color "black"

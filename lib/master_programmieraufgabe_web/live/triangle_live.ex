@@ -7,6 +7,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
 
   @impl true
   def render(assigns) do
+    # Die Funktion übernimmt das rendern der HTML Seite sie empfängt die assigns die in mount() gesetzt wurden
     ~H"""
     <div class="text-white  bg-main-dark m-auto max-w-[80%] rounded-xl shadow-sm shadow-black overflow-hidden">
       <div class="bg-main-darker py-6">
@@ -21,7 +22,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
           <svg
             id="circle-drawer"
             phx-hook="CircleDrawer"
-            viewBox="0 0 100 55"
+            viewBox="0 0 100 50"
             xmlns="http://www.w3.org/2000/svg"
             class="bg-white"
           >
@@ -41,7 +42,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
                                   fill="#0002" stroke="black" stroke-width="0.25" />
           <% end %>
         </svg>
-          <button phx-click="helper-button-click" class="select-none shadow-sm shadow-black bg-main-dark rounded-full  w-40 px-4 py-2 absolute bottom-2 right-2 hover:bg-main-highlight"><%= if @helpers_hidden == true do %> Show Helpers <%= else %> Hide Helpers <%=end%> </button>
+          <button phx-click="helper-button-click" class="select-none shadow-sm shadow-black bg-main-dark rounded-full  w-40 px-4 py-2 absolute bottom-2 right-2 hover:bg-main-highlight"><%= if @helpers_hidden == true do %> Show Helpers <% else %> Hide Helpers <%end%> </button>
           <button phx-click="reset-button-click" class="select-none shadow-sm shadow-black bg-main-dark rounded-full   px-4 py-2 absolute bottom-2 left-2 hover:bg-main-highlight">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" data-slot="icon" class="w-5 h-5">
                 <path fill-rule="evenodd" d="M7.793 2.232a.75.75 0 0 1-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 0 1 0 10.75H10.75a.75.75 0 0 1 0-1.5h2.875a3.875 3.875 0 0 0 0-7.75H3.622l4.146 3.957a.75.75 0 0 1-1.036 1.085l-5.5-5.25a.75.75 0 0 1 0-1.085l5.5-5.25a.75.75 0 0 1 1.06.025Z" clip-rule="evenodd" />
@@ -55,6 +56,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
 
   @impl true
   def mount(_, _, socket) do
+    # hier werden initial die assigns beim aufrufen der Seite gesetzt
     socket
     |> assign(:canvas, CanvasDrawer.new_canvas())
     |> assign(:diameter_coords,nil)
@@ -67,18 +69,24 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
 
   @impl true
   def handle_event("canvas-click", %{"x" => x, "y" => y}, socket) do
+    # Die Funktion wird aufgerufen wenn auf den Canvas geklickt wird sie erhält ihre Daten aus app.js, in der ein EventListener auf den Canvas gesetzt wurde
     canvas = socket.assigns.canvas
     x = to_number(x)
     y = to_number(y)
 
+    # erzeugt einen neuen Kreis an der Klick-Poition und fügt ihn dem Canvas hinzu
     circle = CanvasDrawer.new_circle(x, y)
     updated_canvas = CanvasDrawer.add_circle(canvas, circle)
 
+    # extrahiert alle Koordinaten aus dem Canvas
     pointset = updated_canvas.circles |> extract_coordinates()
+
+    # ermittelt die Koordinaten des neuen Durchmesser
     updated_diameter_coords = MathUtils.find_diameter(pointset)
+    # löscht alle Linien und Kreise aus dem Canvas
     updated_canvas = CanvasDrawer.reset_circle(updated_canvas) |> CanvasDrawer.reset_line()
 
-
+    # ermittelt die Koordinaten der Hilfslinien und des Dreiecks und die Punkte der konvexen Hülle
     {hull_points, helper_lines, triangle_coords} =
       if length(pointset) >= 3 do
         hull_points = MathUtils.graham_scan(pointset)
@@ -91,9 +99,11 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
         {[],[],[]}
       end
 
+      # fügt die Linien und Kreise dem Canvas hinzu
     updated_canvas = Enum.reduce(helper_lines,updated_canvas,fn line, uc -> CanvasDrawer.add_line(uc,line) end)
     updated_canvas = Enum.reduce(hull_points,updated_canvas,fn circle, uc -> CanvasDrawer.update_circle(uc,circle) end)
 
+    # assigns werden gesetzt
     socket
     |> assign(:canvas, updated_canvas)
     |> assign(:diameter_coords, updated_diameter_coords)
@@ -103,6 +113,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   end
 
   def handle_event("helper-button-click",_, socket) do
+    # Funktion wird aufgerufen wenn der Helper-Button geklickt wird und zeigt oder versteckt die Hilfslinien
     if socket.assigns.helpers_hidden == true do
       socket
       |> assign(:helpers_hidden, false)
@@ -115,6 +126,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
   end
 
   def handle_event("reset-button-click", _, socket) do
+    # Funktion wird aufgerufen wenn der Reset-Button geklickt wird und setzt den Canvas zurück
     socket
     |> assign(:canvas, CanvasDrawer.new_canvas())
     |> assign(:diameter_coords,nil)
