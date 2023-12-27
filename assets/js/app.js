@@ -26,7 +26,7 @@ const Hooks = {};
 Hooks.CircleDrawer = {
     mounted() {
       let svg = this.el;
-  
+      
       this.el.addEventListener("click", (e) => {
         let pt = svg.createSVGPoint();
   
@@ -34,7 +34,7 @@ Hooks.CircleDrawer = {
         pt.x = e.clientX;
         pt.y = e.clientY;
   
-        // transform to SVG coordinates
+        // transformiere die Mausposition in das Koordinatensystem des SVG
         let svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
         let x = svgP.x;
         let y = svgP.y;

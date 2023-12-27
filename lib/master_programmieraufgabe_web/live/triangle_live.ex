@@ -74,7 +74,7 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     x = to_number(x)
     y = to_number(y)
 
-    # erzeugt einen neuen Kreis an der Klick-Poition und fügt ihn dem Canvas hinzu
+    # erzeugt einen neuen Kreis an der Klick-Position und fügt ihn dem Canvas hinzu
     circle = CanvasDrawer.new_circle(x, y)
     updated_canvas = CanvasDrawer.add_circle(canvas, circle)
 
