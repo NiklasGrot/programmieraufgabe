@@ -30,7 +30,7 @@ Hooks.CircleDrawer = {
       this.el.addEventListener("click", (e) => {
         let pt = svg.createSVGPoint();
   
-        // pass event coordinates
+        // erhält die Mausposition
         pt.x = e.clientX;
         pt.y = e.clientY;
   

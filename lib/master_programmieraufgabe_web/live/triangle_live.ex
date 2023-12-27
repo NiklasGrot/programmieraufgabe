@@ -86,24 +86,19 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     # löscht alle Linien und Kreise aus dem Canvas
     updated_canvas = CanvasDrawer.reset_circle(updated_canvas) |> CanvasDrawer.reset_line()
 
-    # ermittelt die Koordinaten der Hilfslinien und des Dreiecks und die Punkte der konvexen Hülle
+    # ermittelt die Koordinaten der Hilfslinien, des Dreiecks und die Punkte der konvexen Hülle
     {hull_points, helper_lines, triangle_coords} =
       if length(pointset) >= 3 do
-        hull_points = MathUtils.graham_scan(pointset)
-        [helper_lines,triangle_coords] = MathUtils.get_helper_lines(updated_diameter_coords, hull_points)
-        colors = ["green","green","blue","blue","orange","orange"]
-        %{lines: helper_lines} = Enum.reduce(helper_lines, %{colors: colors,lines: []}, fn (%{x1: x1,y1: y1,x2: x2,y2: y2},%{colors: [color|colors],lines: lines}) -> %{lines: [CanvasDrawer.new_line(x1,y1,x2,y2,color)|lines], colors: colors} end)
-        hull_points =  Enum.map(hull_points, fn {x,y} -> CanvasDrawer.new_circle(x,y,"red") end)
-        {hull_points, helper_lines,triangle_coords}
+        get_line_coords(pointset, updated_diameter_coords)
       else
         {[],[],[]}
       end
 
-      # fügt die Linien und Kreise dem Canvas hinzu
+    # fügt die Linien und Punkte dem Canvas hinzu
     updated_canvas = Enum.reduce(helper_lines,updated_canvas,fn line, uc -> CanvasDrawer.add_line(uc,line) end)
     updated_canvas = Enum.reduce(hull_points,updated_canvas,fn circle, uc -> CanvasDrawer.update_circle(uc,circle) end)
 
-    # assigns werden gesetzt
+    # assigns werden neu gesetzt
     socket
     |> assign(:canvas, updated_canvas)
     |> assign(:diameter_coords, updated_diameter_coords)
@@ -111,6 +106,8 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> assign(:triangle, triangle_coords)
     |> noreply()
   end
+
+
 
   def handle_event("helper-button-click",_, socket) do
     # Funktion wird aufgerufen wenn der Helper-Button geklickt wird und zeigt oder versteckt die Hilfslinien
@@ -132,6 +129,21 @@ defmodule MasterProgrammieraufgabeWeb.TriangleLive do
     |> assign(:diameter_coords,nil)
     |> assign(:triangle,[] )
     |> noreply()
+  end
+
+  defp get_line_coords(pointset, diameter_coords) do
+    # Koordinaten der Punkte der konvexen Hülle
+    hull_points = MathUtils.graham_scan(pointset)
+    # erzeugt die Hilfslinien und das Dreieck
+    [helper_lines,triangle_coords] = MathUtils.get_helper_lines(diameter_coords, hull_points)
+    # farben der Hilfslinien
+    colors = ["green","green","blue","blue","orange","orange"]
+    # erzeugt die Linien mit den jeweiligen Farben
+    %{lines: helper_lines} = Enum.reduce(helper_lines, %{colors: colors,lines: []}, fn (%{x1: x1,y1: y1,x2: x2,y2: y2},%{colors: [color|colors],lines: lines}) -> %{lines: [CanvasDrawer.new_line(x1,y1,x2,y2,color)|lines], colors: colors} end)
+    # erzeugt die Punkte der Hülle in Rot
+    hull_points =  Enum.map(hull_points, fn {x,y} -> CanvasDrawer.new_circle(x,y,"red") end)
+
+    {hull_points, helper_lines,triangle_coords}
   end
 
   def extract_coordinates(circles) do
